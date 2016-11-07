@@ -1,0 +1,32 @@
+{
+    "name": "mobilerider/akamai-analytics-client-php",
+    "type": "library",
+    "description": "Simple PHP client for Akamai Analytics {Open} API",
+    "version": "0.0.1",
+    "keywords": ["analytics", "akamai", "open", "api"],
+    "homepage": "http://www.mobilerider.com/",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Michel Perez",
+            "email": "michel@mobilerider.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Akamai\\Analytics\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Akamai\\AnalyticsTest\\": "tests/"
+        }
+    },
+    "require": {
+        "php": ">=5.5.0",
+        "akamai-open/edgegrid-client": "~0.6"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*"
+    }
+}
