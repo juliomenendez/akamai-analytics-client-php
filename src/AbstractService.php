@@ -4,7 +4,7 @@ namespace Akamai\Analytics;
 
 abstract class AbstractService
 {
-    const VERSION = '0.0.1';
+    const VERSION = '0.0.2';
     const API_VERSION = 'v1';
     const API_PREFIX = 'media-analytics';
 
