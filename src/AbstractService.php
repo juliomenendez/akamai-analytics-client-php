@@ -26,12 +26,15 @@ abstract class AbstractService
     private $edgeClient;
     private $endpointPrefix;
 
-    public function __construct($host, $token, $secret, $accessToken)
+    public function __construct($host, $token, $secret, $accessToken, array $httpOptions = [])
     {
-        $this->edgeClient = new \Akamai\Open\EdgeGrid\Client([
+        $httpOptions = array_merge([
+            'timeout' => '10.0'
+        ], $httpOptions, [
             'base_uri' => $host,
-            'timeout' => '4.0'
         ]);
+
+        $this->edgeClient = new \Akamai\Open\EdgeGrid\Client($httpOptions);
 
         $this->edgeClient->setAuth($token, $secret, $accessToken);
 
