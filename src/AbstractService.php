@@ -78,21 +78,25 @@ abstract class AbstractService
         try {
             $response = $this->getEdgeClient()->request($method, $endpoint, $options);
         } catch (\GuzzleHttp\Exception\GuzzleException $ex) {
-            $content = $ex->getResponse()->getBody()->getContents();
+            if ($response = $ex->getResponse()) {
+                $content = $response->getBody()->getContents();
 
-            if (strpos($content, 'No data store found') !== false) {
-                throw new Exception\NoDataStoreException($content);
+                if (strpos($content, 'No data store found') !== false) {
+                    throw new Exception\NoDataStoreException($content);
+                }
+
+                // This exception is given by an invalid combination of dimensions
+                // and metrics (both should belong to same data store) or it could be due
+                // to a `endDate` - `startDate` difference in days greater than
+                // the `purgeIntervalInDays` of the Data Source
+                if (strpos($content, 'Could not find the data store') !== false) {
+                    throw new Exception\InvalidDataStoreParametersException($content);
+                }
+
+                throw new Exception\RequestException($content);
+            } else {
+                throw new Exception\BaseException($ex->getMessage());
             }
-
-            // This exception is given by an invalid combination of dimensions
-            // and metrics (both should belong to same data store) or it could be due
-            // to a `endDate` - `startDate` difference in days greater than
-            // the `purgeIntervalInDays` of the Data Source
-            if (strpos($content, 'Could not find the data store') !== false) {
-                throw new Exception\InvalidDataStoreParametersException($content);
-            }
-
-            throw new Exception\RequestException($content);
         }
 
         return $this->parseResponse($response);
