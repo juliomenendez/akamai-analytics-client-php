@@ -2,7 +2,7 @@
 
 namespace Akamai\Analytics\Exception;
 
-class NoDataStoreException extends RequestException
+class InvalidDataStoreParametersException extends RequestException
 {
 
 }
