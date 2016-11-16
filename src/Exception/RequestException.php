@@ -17,8 +17,8 @@ class RequestException extends BaseException
             $this->message = $data['title'] . ': ' . $data['detail'];
             $this->statusCode = $data['httpStatus'];
 
-            if ($this->appError) {
-                foreach ($this->appError as $fieldError) {
+            if (isset($data['appError'])) {
+                foreach ($data['appError'] as $fieldError) {
                     $this->fieldErrors[$fieldError['field']] = $fieldError['message'];
                 }
             }
