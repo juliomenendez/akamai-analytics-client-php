@@ -2,7 +2,7 @@
     "name": "mobilerider/akamai-analytics-client-php",
     "type": "library",
     "description": "Simple PHP client for Akamai Analytics {Open} API",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "keywords": ["analytics", "akamai", "open", "api"],
     "homepage": "http://www.mobilerider.com/",
     "license": "MIT",

@@ -50,7 +50,7 @@ abstract class AbstractService
 
     abstract public function getReportType();
 
-    protected function buildEndpoint($resource, $id = null, $childResource = null, $id = null)
+    protected function buildEndpoint($resource, $id = null, $childResource = null, $childId = null)
     {
         return implode('/', array_merge([$this->endpointPrefix, $this->getReportType()], func_get_args()));
     }
