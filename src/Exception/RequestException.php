@@ -15,7 +15,7 @@ class RequestException extends BaseException
 
         if (!json_last_error()) {
             $this->message = $data['title'] . ': ' . $data['detail'];
-            $this->statusCode = $data['httpStatus'];
+            $this->statusCode = isset($data['httpStatus']) ? $data['httpStatus'] : $data['status'];
 
             if (isset($data['appError'])) {
                 foreach ($data['appError'] as $fieldError) {
