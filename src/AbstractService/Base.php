@@ -1,27 +1,15 @@
 <?php
 
-namespace Akamai\Analytics;
+namespace Akamai\Analytics\AbstractService;
 
-abstract class AbstractService
+abstract class Base
 {
-    const VERSION = '0.0.2';
-    const API_VERSION = 'v1';
-    const API_PREFIX = 'media-analytics';
-
-    const API_TYPE_AUDIENCE = 'audience-analytics';
-    const API_TYPE_QOS = 'qos-monitor';
-    const API_TYPE_VIEWER = 'viewer-diagnostics';
-    const API_TYPE_DOWNLOAD = 'download-analytics';
-
-    const API_RESOURCE_REPORT_PACK = 'report-packs';
-
-    const API_CHILD_RESOURCE_DATA_STORE = 'data-stores';
-    const API_CHILD_RESOURCE_DATA_SOURCE = 'data-sources';
-    const API_CHILD_RESOURCE_DATA = 'data';
-
+    const VERSION = '0.0.5';
     const DATE_FORMAT = 'm/d/Y:H:i';
 
     public static $utcTz = null;
+
+    protected static $apiVersion = 'v1';
 
     private $edgeClient;
     private $endpointPrefix;
@@ -29,7 +17,7 @@ abstract class AbstractService
     public function __construct($host, $token, $secret, $accessToken, array $httpOptions = [])
     {
         $httpOptions = array_merge([
-            'timeout' => '10.0'
+            'timeout' => '120.0'
         ], $httpOptions, [
             'base_uri' => $host,
         ]);
@@ -38,7 +26,7 @@ abstract class AbstractService
 
         $this->edgeClient->setAuth($token, $secret, $accessToken);
 
-        $this->endpointPrefix = implode('/', ['', self::API_PREFIX, self::API_VERSION]);
+        $this->endpointPrefix = implode('/', ['', $this->getApiType(), static::$apiVersion]);
 
         self::$utcTz = new \DateTimeZone('UTC');
     }
@@ -48,6 +36,7 @@ abstract class AbstractService
         return $this->edgeClient;
     }
 
+    abstract public function getApiType();
     abstract public function getReportType();
 
     protected function buildEndpoint($resource, $id = null, $childResource = null, $childId = null)
@@ -103,56 +92,5 @@ abstract class AbstractService
         }
 
         return $this->parseResponse($response);
-    }
-
-    public function getReportPacks()
-    {
-        $endpoint = $this->buildEndpoint(self::API_RESOURCE_REPORT_PACK);
-        return $this->get($endpoint);
-    }
-
-    public function getReportPack($id)
-    {
-        $endpoint = $this->buildEndpoint(self::API_RESOURCE_REPORT_PACK, $id);
-        return $this->get($endpoint);
-    }
-
-    public function getDataStores($reportId)
-    {
-        $endpoint = $this->buildEndpoint(
-            self::API_RESOURCE_REPORT_PACK, $reportId, self::API_CHILD_RESOURCE_DATA_STORE
-        );
-
-        return $this->get($endpoint);
-    }
-
-    public function getDataSources($reportId)
-    {
-        $endpoint = $this->buildEndpoint(
-            self::API_RESOURCE_REPORT_PACK, $reportId, self::API_CHILD_RESOURCE_DATA_SOURCE
-        );
-
-        return $this->get($endpoint);
-    }
-
-    public function getData($reportId, \DateTime $startDate, \DateTime $endDate, array $dimensions, array $metrics, array $params = [])
-    {
-        $startDate = $this->prepareDateParam($startDate);
-        $endDate = $this->prepareDateParam($endDate);
-        $dimensions = implode(',', $dimensions);
-        $metrics = implode(',', $metrics);
-
-        $endpoint = $this->buildEndpoint(
-            self::API_RESOURCE_REPORT_PACK, $reportId, self::API_CHILD_RESOURCE_DATA
-        );
-
-        return $this->get($endpoint, [
-            'query' => array_merge($params, [
-                'startDate' => $startDate,
-                'endDate' => $endDate,
-                'dimensions' => $dimensions,
-                'metrics' => $metrics
-            ])
-        ]);
     }
 }
