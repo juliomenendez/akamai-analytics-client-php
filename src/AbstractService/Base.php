@@ -2,6 +2,11 @@
 
 namespace Akamai\Analytics\AbstractService;
 
+use Akamai\Analytics\Exception\RequestException;
+use Akamai\Analytics\Exception\BaseException;
+use Akamai\Analytics\Exception\InvalidDataStoreParametersException;
+use Akamai\Analytics\Exception\NoDataStoreException;
+
 abstract class Base
 {
     const VERSION = '0.0.5';
@@ -54,7 +59,7 @@ abstract class Base
         $data = json_decode($response->getBody()->getContents(), true);
 
         if ($error = json_last_error()) {
-            throw new Exception\BaseException($error);
+            throw new BaseException($error);
         }
 
         return $data;
@@ -66,15 +71,19 @@ abstract class Base
     }
 
     protected function request($method, $endpoint, array $options = [])
-    {
+    {//print_r($options);die();
         try {
+            $options['headers'] = [
+                'Accept' => 'application/json'
+            ];
+
             $response = $this->getEdgeClient()->request($method, $endpoint, $options);
         } catch (\GuzzleHttp\Exception\GuzzleException $ex) {
             if ($response = $ex->getResponse()) {
                 $content = $response->getBody()->getContents();
 
                 if (strpos($content, 'No data store found') !== false) {
-                    throw new Exception\NoDataStoreException($content);
+                    throw new NoDataStoreException($content);
                 }
 
                 // This exception is given by an invalid combination of dimensions
@@ -82,15 +91,32 @@ abstract class Base
                 // to a `endDate` - `startDate` difference in days greater than
                 // the `purgeIntervalInDays` of the Data Source
                 if (strpos($content, 'Could not find the data store') !== false) {
-                    throw new Exception\InvalidDataStoreParametersException($content);
+                    throw new InvalidDataStoreParametersException($content);
                 }
 
-                throw new Exception\RequestException($content);
+                throw new RequestException($content);
             } else {
-                throw new Exception\BaseException($ex->getMessage());
+                throw new BaseException($ex->getMessage());
             }
         }
 
         return $this->parseResponse($response);
+    }
+
+    protected function execute($endpoint, \DateTime $startDate, \DateTime $endDate, array $dimensions, array $metrics, array $params = [])
+    {
+        $startDate = $this->prepareDateParam($startDate);
+        $endDate = $this->prepareDateParam($endDate);
+        $dimensions = implode(',', $dimensions);
+        $metrics = implode(',', $metrics);
+
+        return $this->get($endpoint, [
+            'query' => array_merge($params, [
+                'startDate' => $startDate,
+                'endDate' => $endDate,
+                'dimensions' => $dimensions,
+                'metrics' => $metrics
+            ])
+        ]);
     }
 }
