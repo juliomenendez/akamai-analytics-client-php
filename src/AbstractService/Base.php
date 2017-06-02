@@ -2,10 +2,13 @@
 
 namespace Akamai\Analytics\AbstractService;
 
+use GuzzleHttp\Exception\GuzzleException;
+
 use Akamai\Analytics\Exception\RequestException;
 use Akamai\Analytics\Exception\BaseException;
 use Akamai\Analytics\Exception\InvalidDataStoreParametersException;
 use Akamai\Analytics\Exception\NoDataStoreException;
+use GuzzleHttp\Psr7\Response;
 
 abstract class Base
 {
@@ -13,8 +16,14 @@ abstract class Base
     const DATE_FORMAT = 'm/d/Y:H:i';
 
     public static $utcTz = null;
-
     protected static $apiVersion = 'v1';
+    protected static $emptyResult = [
+        'columns' => [],
+        'rows' => [],
+        'metaData' => [
+           'hasMoreData' => false
+        ]
+    ];
 
     private $edgeClient;
     private $endpointPrefix;
@@ -56,10 +65,16 @@ abstract class Base
 
     protected function parseResponse($response)
     {
+        switch ($response->getStatusCode()) {
+            case 204: // Empty response, no data found
+                return static::$emptyResult;
+        }
+
         $data = json_decode($response->getBody()->getContents(), true);
 
-        if ($error = json_last_error()) {
-            throw new BaseException($error);
+        if ($errorCode = json_last_error()) {
+            $errorMsg = json_last_error_msg();
+            throw new BaseException("Could not parse JSON response: $errorMsg ($errorCode)");
         }
 
         return $data;
@@ -70,15 +85,27 @@ abstract class Base
         return $this->request('GET', $endpoint, $options);
     }
 
+    /**
+     * Make request to Akamai API
+     *
+     * @param string $method    Request method (HTTP Verb)
+     * @param string $endpoint  Endpoint path
+     * @param array  $options    Extra request parameters
+     *
+     * @return array|mixed
+     */
     protected function request($method, $endpoint, array $options = [])
-    {//print_r($options);die();
+    {
         try {
             $options['headers'] = [
                 'Accept' => 'application/json'
             ];
 
             $response = $this->getEdgeClient()->request($method, $endpoint, $options);
-        } catch (\GuzzleHttp\Exception\GuzzleException $ex) {
+        } catch (GuzzleException $ex) {
+            /**
+             * @var Response $response
+             */
             if ($response = $ex->getResponse()) {
                 $content = $response->getBody()->getContents();
 
