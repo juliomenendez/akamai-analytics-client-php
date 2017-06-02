@@ -8,3 +8,5 @@
 test.php
 
 vendor/
+
+.idea/
