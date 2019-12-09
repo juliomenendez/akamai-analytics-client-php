@@ -40,6 +40,10 @@ abstract class Base
 
         $this->edgeClient->setAuth($token, $secret, $accessToken);
 
+        if (isset($httpOptions["debug"])) {
+            $this->edgeClient->setInstanceDebug((bool)$httpOptions["debug"]);
+        }
+
         $this->endpointPrefix = implode('/', ['', $this->getApiType(), static::$apiVersion]);
 
         self::$utcTz = new \DateTimeZone('UTC');
