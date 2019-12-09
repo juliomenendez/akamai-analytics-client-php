@@ -16,7 +16,7 @@ abstract class Base
     const DATE_FORMAT = 'm/d/Y:H:i';
 
     public static $utcTz = null;
-    protected static $apiVersion = 'v1';
+    protected static $apiVersion = 'v2';
     protected static $emptyResult = [
         'columns' => [],
         'rows' => [],
